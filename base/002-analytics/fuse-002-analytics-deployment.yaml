@@ -21,7 +21,7 @@ spec:
       containers: 
         - 
           env:
- - name: spring.datasource.url
+            - name: spring.datasource.url
               valueFrom:
                 secretKeyRef:
                   name: ocp-dev-secrets
