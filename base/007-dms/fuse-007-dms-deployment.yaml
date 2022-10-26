@@ -102,9 +102,9 @@ spec:
                   name: ocp-dev-secrets
                   key: SERVER_NAME
             - name: mdo.config.dms.store.aws.access.key
-              value: AKIA2N77JDASMKGXVBKP
+              value: 
             - name: mdo.config.dms.store.aws.secret.access.key
-              value: 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
+              value: 
             - name: elastic.link
               valueFrom:
                 secretKeyRef:
