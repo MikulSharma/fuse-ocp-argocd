@@ -3,15 +3,15 @@ kind: Route
 metadata:
   creationTimestamp: null
   labels:
-    app: core-ui
-  name: core-ui
+    app: mdo-core-ui
+  name: mdo-core-ui
 spec:
-  host: "core-ui-testing-without-ns.apps.ocp.virt.prospecta.com.au"
+  host: "mdo-core-ui-test.apps.ocp.virt.prospecta.com.au"
   port:
     targetPort: 8080
   to:
     kind: Service
-    name: core-ui
+    name: mdo-core-ui
     weight: 100
   tls:
     termination: edge
