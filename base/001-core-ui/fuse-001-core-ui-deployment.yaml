@@ -1,31 +1,39 @@
---- 
-apiVersion: apps/v1
-kind: Deployment
-metadata: 
-  creationTimestamp: ~
-  labels: 
-    app: core-ui
-  name: core-ui
-spec: 
-  replicas: 3
-  selector: 
-    matchLabels: 
-      app: core-ui
-  strategy: {}
-  template: 
-    metadata: 
-      creationTimestamp: ~
-      labels: 
-        app: core-ui
-    spec: 
-      containers: 
-        - 
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  name: mdo-core-ui
+spec:
+  strategy:
+    type: Rolling
+    rollingParams:
+      updatePeriodSeconds: 1
+      intervalSeconds: 1
+      timeoutSeconds: 600
+      maxUnavailable: 25%
+      maxSurge: 25%
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ConfigChange
+  replicas: 1
+  revisionHistoryLimit: 10
+  test: false
+  selector:
+    app: mdo-core-ui
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mdo-core-ui
+    spec:
+      containers:
+        - name: mdo-core-ui
+          image: >-
+            docker-push.prospecta.com/prospecta/mdo-analytics:development
           env:
             - name: spring.datasource.url
-              valueFrom:
-                secretKeyRef:
-                  name: ocp-dev-secrets
-                  key: SPRING_DATASOURCE_URL_DEV_CORE
+              value: >-
+                jdbc:postgresql://postgresql.cdf1cbpxzgyx.ap-southeast-1.rds.amazonaws.com:5432/devops_test
             - name: spring.datasource.username
               valueFrom:
                 secretKeyRef:
@@ -121,11 +129,6 @@ spec:
                 secretKeyRef:
                   name: ocp-dev-secrets
                   key: MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS
-            - name: management.endpoint.health.show-details
-              valueFrom:
-                secretKeyRef:
-                  name: ocp-dev-secrets
-                  key: MANAGEMENT_ENDPOINT_HEALTH_SHOW-DETAILS
             - name: management.health.defaults.enabled
               valueFrom:
                 secretKeyRef:
@@ -136,16 +139,6 @@ spec:
                 secretKeyRef:
                   name: ocp-dev-secrets
                   key: MANAGEMENT_ENDPOINT_HEALTH_GROUP_ALB_INCLUDE
-            - name: management.endpoint.health.group.alb.include
-              valueFrom:
-                secretKeyRef:
-                  name: ocp-dev-secrets
-                  key: MANAGEMENT_ENDPOINT_HEALTH_GROUP_ALB_INCLUDE
-            - name: management.endpoint.health.group.alb.show-components
-              valueFrom:
-                secretKeyRef:
-                  name: ocp-dev-secrets
-                  key: MANAGEMENT_ENDPOINT_HEALTH_GROUP_ALB_SHOW-COMPONENTS
             - name: management.endpoint.health.group.alb.show-components
               valueFrom:
                 secretKeyRef:
@@ -156,16 +149,6 @@ spec:
                 secretKeyRef:
                   name: ocp-dev-secrets
                   key: MANAGEMENT_ENDPOINT_HEALTH_GROUP_ALB_SHOW-DETAILS
-            - name: management.endpoint.health.group.alb.show-details
-              valueFrom:
-                secretKeyRef:
-                  name: ocp-dev-secrets
-                  key: MANAGEMENT_ENDPOINT_HEALTH_GROUP_ALB_SHOW-DETAILS
-            - name: management.health.group.alb.defaults.enabled
-              valueFrom:
-                secretKeyRef:
-                  name: ocp-dev-secrets
-                  key: MANAGEMENT_HEALTH_GROUP_ALB_DEFAULTS_ENABLED
             - name: management.health.group.alb.defaults.enabled
               valueFrom:
                 secretKeyRef:
@@ -197,11 +180,11 @@ spec:
                   name: ocp-dev-secrets
                   key: ELASTIC_PASSWORD
             - name: grpc.crud.address.url
-              value: 'null'
+              value: 172.30.140.187
             - name: grpc.rule.address.url
-              value: 'null'
+              value: 172.30.91.36
             - name: grpc.rule.address.port
-              value: '10000'
+              value: '10003'
             - name: NEW_RELIC_APP_NAME
               valueFrom:
                 secretKeyRef:
@@ -222,40 +205,35 @@ spec:
               value: 'true'
             - name: spring.jpa.properties.hibernate.cache.region.factory_class
               value: com.hazelcast.hibernate.HazelcastCacheRegionFactory
+            - name: spring.jpa.properties.hibernate.generate_statistics
+              value: 'true'
+            - name: spring.jpa.properties.hibernate.show_sql
+              value: 'true'
+            - name: spring.jpa.properties.hibernate.format_sql
+              value: 'true'
+            - name: spring.jpa.properties.hibernate.use_sql_comments
+              value: 'true'
             - name: grpc.process.address.url
-              value: 'null'
+              value: 172.30.89.249
             - name: grpc.process.address.port
-              value: '10000'
+              value: '10009'
             - name: library.url
               value: dataplay.connekthub.com
             - name: library.token
               value: 6a380455-6b2f-4510-bb38-08a75c0275b4
-            - name: management.health.default-enabled
-              valueFrom:
-                secretKeyRef:
-                  name: ocp-dev-secrets
-                  key: MANAGEMENT_HEALTH_DEFAULTS_ENABLED
-            - name: server.max-http-header-size
-              value: 512KB
-            - name: spring.datasource.hikari.connection-timeout
-              value: '20000'
-            - name: spring.datasource.hikari.minimum-idle
-              value: '1'
-            - name: spring.datasource.hikari.maximum-pool-size
-              value: '10'
-            - name: spring.datasource.hikari.idleTimeout
-              value: '30000'
-            - name: elastic.protocol
-              value: https
-            - name: elastic.port
-              value: '9200'
-          image: "docker.prospecta.com/prospecta/core-ui:development"
-          name: core-ui
+            - name: HZ_CLUSTERNAME
+              value: core-ui
+            - name: spring.hazelcast.config
+              value: 'classpath:hazelcast.xml'
           resources: {}
-          securityContext:
-            privileged: false
-      securityContext: {}
-      imagePullSecrets:
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      magePullSecrets:
         - name: nexus-image-pull
-      serviceAccount: runasanyuid
+      securityContext: {}
+      schedulerName: default-scheduler
 ---
