@@ -232,7 +232,7 @@ spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
-      magePullSecrets:
+      imagePullSecrets:
         - name: nexus-image-pull
       securityContext: {}
       schedulerName: default-scheduler
