@@ -180,11 +180,11 @@ spec:
                   name: ocp-dev-secrets
                   key: ELASTIC_PASSWORD
             - name: grpc.crud.address.url
-              value: 172.30.140.187
+              value: 'null'
             - name: grpc.rule.address.url
-              value: 172.30.91.36
+              value: 'null'
             - name: grpc.rule.address.port
-              value: '10003'
+              value: '10000'
             - name: NEW_RELIC_APP_NAME
               valueFrom:
                 secretKeyRef:
@@ -214,13 +214,13 @@ spec:
             - name: spring.jpa.properties.hibernate.use_sql_comments
               value: 'true'
             - name: grpc.process.address.url
-              value: 172.30.89.249
+              value: 'null'
             - name: grpc.process.address.port
-              value: '10009'
+              value: '10000'
             - name: library.url
               value: dataplay.connekthub.com
             - name: library.token
-              value: 6a380455-6b2f-4510-bb38-08a75c0275b4
+              value: 'null'
             - name: HZ_CLUSTERNAME
               value: core-ui
             - name: spring.hazelcast.config
