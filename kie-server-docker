@@ -1,0 +1,93 @@
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: mdo-kie-server-docker-st
+  annotations:
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"mdo-kie-server-docker:development"},"fieldPath":"spec.template.spec.containers[?(@.name==\"mdo-kie-server-docker-st\")].image"}]
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mdo-kie-server-docker-st
+  template:
+    metadata:
+      labels:
+        app: mdo-kie-server-docker-st
+    spec:
+      serviceAccountName: runasanyuid
+      imagePullSecrets:
+        - name: nexus-image-pull
+      containers:
+        - name: mdo-kie-server-docker-st
+          image: 'docker.prospecta.com/prospecta/mdo-kie-server-docker:development'
+          env:
+            - name: KIE_SERVER_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: DRL_AMQ_USERNAME
+              value: artemis
+            - name: DRL_AMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ocp-dev-secrets
+                  key: AMQ_PASSWORD
+            - name: DRL_AMQ_URL
+              value: artemis
+            - name: KIE_SERVER_SMART_ROUTER_URL
+              value: >-
+                https://mdo-kie-server-router-docker
+            - name: DRL_PG_SERVER_IP
+              value: 192.168.10.43
+            - name: DRL_PG_SERVER_PORT
+              value: '5432'
+            - name: DRL_PG_DB_NAME
+              value: mdo_dev_drools
+            - name: DRL_PG_DB_UID
+              value: mdo
+            - name: DRL_PG_DB_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: ocp-dev-secrets
+                  key: JBPM_DB_PASSWORD
+            - name: MDO_ELASTICSEARCH_URL
+              value: 'https://os13x.opensearch:9200'
+            - name: MDO_ELASTICSEARCH_SVC_USER
+              value: admin
+            - name: MDO_ELASTICSEARCH_SVC_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: ocp-dev-secrets
+                  key: ELASTIC_PASSWORD
+            - name: MDO_ELASTICSEARCH_USER_INDEX
+              value: dev.masterdataonline.com_drool_mdo_users
+            - name: MDO_ELASTICSEARCH_GROUP_INDEX
+              value: dev.masterdataonline.com_drool_mdo_roles
+            - name: enable_ssl
+              value: 'false'
+            - name: KIE_SERVER_ID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: KIE_SERVER_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: KIE_SERVER_SERVICE_NAME
+              value: mdo-kie-server-docker
+          volumeMounts:
+            - name: glusterfs-volume-development
+              mountPath: /home/jboss/network_share
+          imagePullPolicy: IfNotPresent
+      serviceAccount: runasanyuid
+      volumes:
+        - name: glusterfs-volume-development
+          persistentVolumeClaim:
+            claimName: glusterfs-volume-development
+      dnsPolicy: ClusterFirst
+  serviceName: mdo-kie-server-docker
